@@ -21,9 +21,12 @@ func main() {
 	go consultarCEP("https://viacep.com.br/ws/66825-070/json/", channelViaCep, &c)
 	go consultarCEP("https://cdn.apicep.com/file/apicep/66825-070.json", channelCDN, &c)
 
-	result := getResult(channelViaCep, channelCDN)
-
-	fmt.Println(result)
+	result, err := getResult(channelViaCep, channelCDN)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(result)
+	}
 }
 
 func consultarCEP(url string, ch chan<- string, c *http.Client) {
@@ -37,13 +40,13 @@ func consultarCEP(url string, ch chan<- string, c *http.Client) {
 	ch <- string(response)
 }
 
-func getResult(channelViaCep chan string, channelCDN chan string) CEPResponse {
+func getResult(channelViaCep chan string, channelCDN chan string) (*CEPResponse, error) {
 	select {
 	case msgViaCep := <-channelViaCep:
-		return CEPResponse{API: "http://viacep.com.br/ws/", CEP: msgViaCep}
+		return &CEPResponse{API: "http://viacep.com.br/ws/", CEP: msgViaCep}, nil
 	case msgCDN := <-channelCDN:
-		return CEPResponse{API: "https://cdn.apicep.com/file/apicep/", CEP: msgCDN}
+		return &CEPResponse{API: "https://cdn.apicep.com/file/apicep/", CEP: msgCDN}, nil
 	case <-time.After(time.Second):
-		panic(errors.New("endpoint request timeout"))
+		return nil, errors.New("endpoint request timeout")
 	}
 }
