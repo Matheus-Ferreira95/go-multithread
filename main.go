@@ -43,7 +43,7 @@ func getResult(channelViaCep chan string, channelCDN chan string) CEPResponse {
 		return CEPResponse{API: "http://viacep.com.br/ws/", CEP: msgViaCep}
 	case msgCDN := <-channelCDN:
 		return CEPResponse{API: "https://cdn.apicep.com/file/apicep/", CEP: msgCDN}
-	case <-time.After(time.Second * 5):
+	case <-time.After(time.Second):
 		panic(errors.New("endpoint request timeout"))
 	}
 }
