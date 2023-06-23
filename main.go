@@ -17,30 +17,16 @@ func main() {
 	c := http.Client{}
 	channelViaCep := make(chan string)
 	channelCDN := make(chan string)
-	cep := "66825-070"
 
-	go consultarCEPViaCep(channelViaCep, &c, cep)
-	go consultarCEPCdn(channelCDN, &c, cep)
+	go consultarCEP("https://viacep.com.br/ws/66825-070/json/", channelViaCep, &c)
+	go consultarCEP("https://cdn.apicep.com/file/apicep/66825-070.json", channelCDN, &c)
 
 	result := getResult(channelViaCep, channelCDN)
 
 	fmt.Println(result)
 }
 
-func consultarCEPViaCep(ch chan<- string, c *http.Client, cep string) {
-	url := "https://viacep.com.br/ws/" + cep + "/json/"
-	resp, err := c.Get(url)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	response, _ := io.ReadAll(resp.Body)
-	ch <- string(response)
-}
-
-func consultarCEPCdn(ch chan<- string, c *http.Client, cep string) {
-	url := "https://cdn.apicep.com/file/apicep/" + cep + ".json"
+func consultarCEP(url string, ch chan<- string, c *http.Client) {
 	resp, err := c.Get(url)
 	if err != nil {
 		panic(err)
